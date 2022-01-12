@@ -1,11 +1,19 @@
 package com.junyharang.springsecuritystudy.controller;
 
+import com.junyharang.springsecuritystudy.model.Member;
+import com.junyharang.springsecuritystudy.repository.MemberRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller // view를 반환하겠다는 의미
 public class IndexController {
+
+    @Autowired private MemberRepository memberRepository;
+    @Autowired private PasswordEncoder passwordEncoder;
 
     @GetMapping({"","/"}) public String index() {
         // 머스태치 기본폴더 /src/main/resources/
@@ -27,16 +35,24 @@ public class IndexController {
     } // manager() 끝
 
     // 기본적으로 스프링 시큐리티는 해당 URI로 오면 이미 만들어진 Login Page를 보여주는데, SeuciryConfig 파일로 WebSecurityConfigurerAdapter를 상속 받아 구현하면 해당 기능이 사라진다.
-    @GetMapping("/login") public @ResponseBody String login() {
-        return "login";
+    @GetMapping("/login/form") public String loginForm() {
+        return "loginForm";
     } // login() 끝
 
-    @GetMapping("/join") public @ResponseBody String join() {
-        return "join";
-    } // join() 끝
+    @GetMapping("/join/form") public String joinForm() {
+        return "joinForm";
+    } // login() 끝
 
-    @GetMapping("/join/proc") public @ResponseBody String joinProc() {
-        return "회원가입 완료!";
-    } // joinProc() 끝
+    @PostMapping("/join") public String join(Member member) {
+        System.out.println("회원 가입한 회원의 정보 : " + member.toString());
+        member.setRole("ROLE_USER");
+
+        String rawPWD = member.getPassword();
+        String encPWD = passwordEncoder.encode(rawPWD);
+        member.setPassword(encPWD);
+
+        memberRepository.save(member);
+        return "redirect:/login/form";  // /login/form으로 리다이렉트 해준다.
+    } // join() 끝
 
 } // clas끝 끝
